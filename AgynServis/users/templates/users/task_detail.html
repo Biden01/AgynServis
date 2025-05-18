@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Задание: {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-clipboard-check"></i> {{ task.title }}
+        </h1>
+        <div class="mt-2">
+            {% if task.priority == 'low' %}
+            <span class="badge bg-success"><i class="bi bi-arrow-down-circle me-1"></i>Низкий приоритет</span>
+            {% elif task.priority == 'medium' %}
+            <span class="badge bg-primary"><i class="bi bi-dash-circle me-1"></i>Средний приоритет</span>
+            {% elif task.priority == 'high' %}
+            <span class="badge bg-warning text-dark"><i class="bi bi-arrow-up-circle me-1"></i>Высокий приоритет</span>
+            {% elif task.priority == 'urgent' %}
+            <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>Срочный приоритет</span>
+            {% endif %}
+            
+            {% if task.status == 'new' %}
+            <span class="badge bg-secondary ms-2"><i class="bi bi-star me-1"></i>Новое</span>
+            {% elif task.status == 'in_progress' %}
+            <span class="badge bg-primary ms-2"><i class="bi bi-hourglass-split me-1"></i>В работе</span>
+            {% elif task.status == 'completed' %}
+            <span class="badge bg-success ms-2"><i class="bi bi-check-circle me-1"></i>Выполнено</span>
+            {% elif task.status == 'cancelled' %}
+            <span class="badge bg-danger ms-2"><i class="bi bi-x-circle me-1"></i>Отменено</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к заданиям
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-info-circle"></i> Описание задания</h5>
+            </div>
+            <div class="card-body">
+                <div class="task-description">
+                    {{ task.description|linebreaks }}
+                </div>
+            </div>
+        </div>
+        
+        {% if task.document %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-file-earmark-text"></i> Связанный документ</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'document_detail' task.document.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-text me-2"></i> {{ task.document.title }}
+                </a>
+                <div class="mt-3">
+                    <p class="mb-1 fw-medium">Статус документа:</p> 
+                    {% if task.document.status == 'draft' %}
+                    <span class="badge bg-secondary"><i class="bi bi-pencil me-1"></i>Черновик</span>
+                    {% elif task.document.status == 'pending' %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>На рассмотрении</span>
+                    {% elif task.document.status == 'approved' %}
+                    <span class="badge bg-primary"><i class="bi bi-check-circle me-1"></i>Подтвержден</span>
+                    {% elif task.document.status == 'signed' %}
+                    <span class="badge bg-success"><i class="bi bi-pen me-1"></i>Подписан юристом</span>
+                    {% elif task.document.status == 'rejected' %}
+                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Отклонен</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-info-circle"></i> Информация</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person me-2 text-primary"></i>Назначил:</span> 
+                        <span class="fw-medium">{{ task.assigned_by.get_full_name }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-check me-2 text-primary"></i>Исполнитель:</span> 
+                        <span class="fw-medium">{{ task.assigned_to.get_full_name }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calendar-plus me-2 text-primary"></i>Создано:</span> 
+                        <span>{{ task.created_at|date:"d.m.Y H:i" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calendar-event me-2 text-primary"></i>Срок выполнения:</span>
+                        <span>
+                            {% if task.deadline %}
+                            {{ task.deadline|date:"d.m.Y H:i" }}
+                            {% else %}
+                            <span class="text-muted">Не задан</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    {% if task.completed_at %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calendar-check me-2 text-success"></i>Выполнено:</span> 
+                        <span>{{ task.completed_at|date:"d.m.Y H:i" }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-gear"></i> Действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.role == 'director' and task.status != 'completed' and task.status != 'cancelled' %}
+                    <a href="{% url 'task_edit' task.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-2"></i> Редактировать задание
+                    </a>
+                    <a href="{% url 'task_cancel' task.pk %}" class="btn btn-outline-danger" onclick="return confirm('Вы уверены, что хотите отменить задание?')">
+                        <i class="bi bi-x-circle me-2"></i> Отменить задание
+                    </a>
+                    {% endif %}
+                    
+                    {% if user == task.assigned_to and task.status == 'new' %}
+                    <a href="{% url 'task_start' task.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-play me-2"></i> Начать выполнение
+                    </a>
+                    {% endif %}
+                    
+                    {% if user == task.assigned_to and task.status == 'in_progress' %}
+                    <a href="{% url 'task_complete' task.pk %}" class="btn btn-outline-success">
+                        <i class="bi bi-check2 me-2"></i> Завершить задание
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

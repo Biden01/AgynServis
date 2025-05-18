@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель управления - AgynServis{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Панель управления</h1>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-1">Всего документов</h6>
+                <h2 class="mb-0">{{ total_documents }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-1">Подписанные</h6>
+                <h2 class="mb-0">{{ signed_documents }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние действия -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-history"></i> Последние действия
+        </h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            {% for action in recent_actions %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>{{ action.action }}</strong>
+                        <br>
+                        <small>{{ action.document.title }}</small>
+                    </div>
+                    <small class="text-muted">{{ action.timestamp|date:"d.m.Y H:i" }}</small>
+                </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center">Нет последних действий</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Последние документы -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-file-alt"></i> Последние документы
+        </h5>
+        <a href="{% url 'document_list' %}" class="btn btn-primary">Все документы</a>
+    </div>
+    <div class="card-body">
+        {% if documents %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Статус</th>
+                        <th>Дата</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td>{{ document.title }}</td>
+                        <td>
+                            <span class="badge {% if document.status == 'signed' %}bg-success{% elif document.status == 'approved' %}bg-primary{% elif document.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ document.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ document.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'document_detail' document.pk %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center">Нет документов</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

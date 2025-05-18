@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактирование профиля - AgynServis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+        background-color: var(--card-bg);
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+    
+    .profile-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .profile-body {
+        padding: 2rem;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        box-shadow: var(--input-shadow);
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        border-color: var(--primary-color);
+    }
+    
+    .invalid-feedback {
+        color: var(--danger-color);
+    }
+    
+    .action-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <h4><i class="bi bi-pencil-square me-2"></i> Редактирование профиля</h4>
+                </div>
+                <div class="profile-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block mt-1">
+                                {% for error in field.errors %}
+                                    <small><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="action-btns">
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Вернуться
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle me-1"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

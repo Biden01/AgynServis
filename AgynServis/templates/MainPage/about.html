@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}О нас - AgynServis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-wrapper {
+        padding: 3rem 0;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+        margin: 1rem 0 4rem;
+        border-radius: 24px;
+    }
+    
+    .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .video-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    video {
+        width: 100%;
+        height: auto;
+        display: block;
+        background-color: #000;
+    }
+    
+    /* Стилизация элементов управления видео */
+    video::-webkit-media-controls-panel {
+        background-image: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+    }
+    
+    video::-webkit-media-controls-play-button {
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+    
+    video::-webkit-media-controls-timeline {
+        border-radius: 20px;
+    }
+    
+    .video-title {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 2.5rem;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .video-title:after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 2px;
+    }
+    
+    @media (max-width: 768px) {
+        .video-wrapper {
+            padding: 1.5rem 0;
+            margin: 0.5rem 0 2rem;
+        }
+        
+        .video-title {
+            font-size: 1.8rem;
+        }
+        
+        .video-container {
+            border-radius: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center mb-2">
+            <div class="video-title">О нас</div>
+        </div>
+    </div>
+    
+    <div class="video-wrapper">
+        <div class="video-container">
+            <video controls autoplay muted loop preload="auto" poster="{% static 'favicon/apple-touch-icon.png' %}">
+                <source src="{% static 'about.MP4' %}" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
+        </div>
+    </div>
+</div>
+{% endblock %} 

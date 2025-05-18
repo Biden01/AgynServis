@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{% if task %}Редактирование задания{% else %}Новое задание{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-clipboard"></i> 
+            {% if task %}Редактирование задания{% else %}Новое задание{% endif %}
+        </h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к заданиям
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-pencil-square"></i> 
+                    {% if task %}Редактирование задания{% else %}Создание нового задания{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label fw-medium">Название задания</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.title.errors %}
+                            <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label fw-medium">Описание задания</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.description.errors %}
+                            <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_assigned_to" class="form-label fw-medium">Исполнитель</label>
+                            {{ form.assigned_to }}
+                            {% if form.assigned_to.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.assigned_to.errors %}
+                                <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_priority" class="form-label fw-medium">Приоритет</label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.priority.errors %}
+                                <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_document" class="form-label fw-medium">Связанный документ</label>
+                            {{ form.document }}
+                            {% if form.document.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.document.errors %}
+                                <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_deadline" class="form-label fw-medium">Срок выполнения</label>
+                            {{ form.deadline }}
+                            {% if form.deadline.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.deadline.errors %}
+                                <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-x"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2"></i> 
+                            {% if task %}Сохранить изменения{% else %}Создать задание{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

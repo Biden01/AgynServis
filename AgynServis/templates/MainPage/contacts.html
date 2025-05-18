@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты - AgynServis{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <h1 class="mb-4">Свяжитесь с нами</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Контактная информация</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="bi bi-geo-alt-fill text-primary"></i>
+                            <strong>Адрес:</strong><br>
+                            г. Алматы, ул. Примерная, 123
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-telephone-fill text-primary"></i>
+                            <strong>Телефон:</strong><br>
+                            +7 (777) 777-77-77
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-envelope-fill text-primary"></i>
+                            <strong>Email:</strong><br>
+                            info@agynservis.kz
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Время работы</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>Понедельник - Пятница:</strong> 9:00 - 18:00</li>
+                        <li class="mb-2"><strong>Суббота:</strong> 10:00 - 16:00</li>
+                        <li class="mb-2"><strong>Воскресенье:</strong> Выходной</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Отправить сообщение</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Ваше имя</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Сообщение</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,551 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AgynServis{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            /* Основная цветовая схема (светлая тема) */
+            --primary-color: #2563eb;         /* Синий */
+            --secondary-color: #7c3aed;       /* Фиолетовый */
+            --accent-color: #ea580c;          /* Оранжевый */
+            --success-color: #16a34a;         /* Зеленый */
+            --warning-color: #ca8a04;         /* Желтый */
+            --danger-color: #dc2626;          /* Красный */
+            --info-color: #0284c7;            /* Голубой */
+            
+            /* Фоны и текст (светлая тема) */
+            --bg-color: #f8fafc;              /* Основной фон */
+            --card-bg: #ffffff;               /* Фон карточек */
+            --text-color: #1e293b;            /* Основной текст */
+            --text-muted: #64748b;            /* Приглушенный текст */
+            --border-color: #e2e8f0;          /* Цвет границ */
+            
+            /* Тени и эффекты */
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --hover-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+            --input-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            
+            /* Компоненты UI */
+            --table-header-bg: #f1f5f9;
+            --dropdown-hover-bg: #e2e8f0;
+            --navbar-bg-start: var(--primary-color);
+            --navbar-bg-end: var(--secondary-color);
+            --footer-bg-start: #1e293b;
+            --footer-bg-end: #0f172a;
+        }
+
+        [data-bs-theme="dark"] {
+            /* Основная цветовая схема (темная тема) */
+            --primary-color: #3b82f6;         /* Синий */
+            --secondary-color: #8b5cf6;       /* Фиолетовый */
+            --accent-color: #f97316;          /* Оранжевый */
+            --success-color: #22c55e;         /* Зеленый */
+            --warning-color: #eab308;         /* Желтый */
+            --danger-color: #ef4444;          /* Красный */
+            --info-color: #0ea5e9;            /* Голубой */
+            
+            /* Фоны и текст (темная тема) */
+            --bg-color: #0f172a;              /* Основной фон */
+            --card-bg: #1e293b;               /* Фон карточек */
+            --text-color: #e2e8f0;            /* Основной текст */
+            --text-muted: #94a3b8;            /* Приглушенный текст */
+            --border-color: #334155;          /* Цвет границ */
+            
+            /* Тени и эффекты */
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.2), 0 2px 4px -2px rgba(0,0,0,0.1);
+            --hover-shadow: 0 10px 15px -3px rgba(0,0,0,0.2), 0 4px 6px -4px rgba(0,0,0,0.1);
+            --input-shadow: 0 1px 2px 0 rgba(0,0,0,0.1);
+            
+            /* Компоненты UI */
+            --table-header-bg: #1e293b;
+            --dropdown-hover-bg: #334155;
+            --navbar-bg-start: #1e40af;
+            --navbar-bg-end: #6d28d9;
+            --footer-bg-start: #0f172a;
+            --footer-bg-end: #020617;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--navbar-bg-start), var(--navbar-bg-end));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0.8rem 1rem;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            padding: 0.6rem 1rem;
+            margin: 0 0.2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.2s;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--dropdown-hover-bg);
+            transform: translateX(5px);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .card-header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .btn {
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid transparent;
+        }
+        
+        .alert-success {
+            border-left-color: var(--success-color);
+            background-color: rgba(22, 163, 74, 0.1);
+            color: var(--success-color);
+        }
+        
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            background-color: rgba(202, 138, 4, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .alert-danger {
+            border-left-color: var(--danger-color);
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .alert-info {
+            border-left-color: var(--info-color);
+            background-color: rgba(2, 132, 199, 0.1);
+            color: var(--info-color);
+        }
+        
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .table thead th {
+            background-color: var(--table-header-bg);
+            border-bottom: none;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .table tbody tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        [data-bs-theme="dark"] .table tbody tr:nth-child(even) {
+            background-color: rgba(255,255,255,0.02);
+        }
+        
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 600;
+            border-radius: 6px;
+            text-transform: uppercase;
+            font-size: 0.75em;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: var(--input-shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+        
+        footer {
+            background: linear-gradient(135deg, var(--footer-bg-start), var(--footer-bg-end));
+            color: #fff;
+            padding: 3rem 0 1.5rem;
+            margin-top: 5rem;
+        }
+        
+        footer a {
+            color: rgba(255,255,255,0.8);
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* Dark mode toggle styling */
+        .theme-toggle {
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            background-color: rgba(255,255,255,0.15);
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .navbar-collapse {
+                margin-top: 1rem;
+            }
+            
+            .dropdown-menu {
+                margin-left: 1rem;
+                box-shadow: none;
+                border-left: 2px solid var(--primary-color);
+                border-radius: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'MainPage:home' %}">
+                <i class="bi bi-building"></i> AgynServis
+            </a>
+            <div class="d-flex ms-auto me-2 order-lg-last">
+                <div class="theme-toggle nav-link d-flex justify-content-center align-items-center" id="theme-toggle" aria-label="Переключить тему">
+                    <i class="bi bi-sun-fill theme-icon-light"></i>
+                    <i class="bi bi-moon-fill theme-icon-dark d-none"></i>
+                </div>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'MainPage:home' %}"><i class="bi bi-house"></i> Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'MainPage:services' %}"><i class="bi bi-list-check"></i> Услуги</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'MainPage:about' %}"><i class="bi bi-info-circle"></i> О нас</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'MainPage:contacts' %}"><i class="bi bi-envelope"></i> Контакты</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="documentsDropdown" data-bs-toggle="dropdown">
+                                <i class="bi bi-file-earmark-text"></i> Документы
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'document_list' %}"><i class="bi bi-files me-2"></i>Все документы</a></li>
+                                <li><a class="dropdown-item" href="{% url 'document_list' %}?type=incoming"><i class="bi bi-box-arrow-in-down-right me-2"></i>Входящие документы</a></li>
+                                <li><a class="dropdown-item" href="{% url 'document_list' %}?type=outgoing"><i class="bi bi-box-arrow-up-right me-2"></i>Исходящие документы</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'document_drafts' %}"><i class="bi bi-pencil me-2"></i>Черновики</a></li>
+                                <li><a class="dropdown-item" href="{% url 'document_pending' %}"><i class="bi bi-hourglass-split me-2"></i>На рассмотрении</a></li>
+                                <li><a class="dropdown-item" href="{% url 'document_approved' %}"><i class="bi bi-check-circle me-2"></i>Подтвержденные</a></li>
+                                <li><a class="dropdown-item" href="{% url 'document_signed' %}"><i class="bi bi-pen me-2"></i>Подписанные</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'document_create' %}"><i class="bi bi-plus-circle me-2"></i>Создать документ</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="tasksDropdown" data-bs-toggle="dropdown">
+                                <i class="bi bi-list-task"></i> Задания
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'task_list' %}"><i class="bi bi-list-ul me-2"></i>Все задания</a></li>
+                                <li><a class="dropdown-item" href="{% url 'task_list' %}?status=new"><i class="bi bi-star me-2"></i>Новые задания</a></li>
+                                <li><a class="dropdown-item" href="{% url 'task_list' %}?status=in_progress"><i class="bi bi-hourglass-split me-2"></i>В работе</a></li>
+                                <li><a class="dropdown-item" href="{% url 'task_list' %}?status=completed"><i class="bi bi-check-all me-2"></i>Выполненные</a></li>
+                                {% if user.role == 'director' %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'task_create' %}"><i class="bi bi-plus-circle me-2"></i>Создать задание</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Профиль</a></li>
+                                <li><a class="dropdown-item" href="{% url 'profile_edit' %}"><i class="bi bi-gear me-2"></i>Настройки</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form id="logout-form" action="{% url 'logout' %}" method="post" class="m-0 p-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger border-0 bg-transparent">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Выйти
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Войти</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}"><i class="bi bi-person-plus"></i> Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-building"></i> AgynServis</h5>
+                    <p class="text-light-50">Ваш надежный партнер в сфере электронного документооборота</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Навигация</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'MainPage:home' %}"><i class="bi bi-house me-2"></i>Главная</a></li>
+                        <li class="mb-2"><a href="{% url 'MainPage:services' %}"><i class="bi bi-list-check me-2"></i>Услуги</a></li>
+                        <li class="mb-2"><a href="{% url 'MainPage:about' %}"><i class="bi bi-info-circle me-2"></i>О нас</a></li>
+                        <li class="mb-2"><a href="{% url 'MainPage:contacts' %}"><i class="bi bi-envelope me-2"></i>Контакты</a></li>
+                        {% if user.is_authenticated %}
+                            <li class="mb-2"><a href="{% url 'document_list' %}"><i class="bi bi-file-earmark-text me-2"></i>Документы</a></li>
+                            <li class="mb-2"><a href="{% url 'task_list' %}"><i class="bi bi-list-task me-2"></i>Задания</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Контакты</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-telephone me-2"></i>+7 (777) 777-77-77</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i>info@agynservis.kz</li>
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>г. Алматы, ул. Примерная, 123</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light opacity-25">
+            <div class="text-center">
+                <p class="mb-0 opacity-75">&copy; 2024 AgynServis. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get theme toggle button
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeIconLight = document.querySelector('.theme-icon-light');
+            const themeIconDark = document.querySelector('.theme-icon-dark');
+            
+            // Function to set theme
+            const setTheme = (themeName) => {
+                document.documentElement.setAttribute('data-bs-theme', themeName);
+                localStorage.setItem('theme', themeName);
+                
+                // Toggle icons
+                if (themeName === 'dark') {
+                    themeIconLight.classList.add('d-none');
+                    themeIconDark.classList.remove('d-none');
+                } else {
+                    themeIconLight.classList.remove('d-none');
+                    themeIconDark.classList.add('d-none');
+                }
+            };
+            
+            // Check for saved user preference
+            const savedTheme = localStorage.getItem('theme');
+            
+            // Apply saved theme or default to light
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                // Check for preferred color scheme
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme('dark');
+                } else {
+                    setTheme('light');
+                }
+            }
+            
+            // Toggle theme on click
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                setTheme(newTheme);
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

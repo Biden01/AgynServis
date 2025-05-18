@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Документы - AgynServis{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-file-earmark-text"></i> 
+            {% if title %}{{ title }}{% else %}Документы{% endif %}
+        </h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'document_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-square me-2"></i> Создать документ
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <!-- Фильтры и поиск -->
+        <div class="row mb-1">
+            <div class="col-md-6">
+                <form method="get" class="d-flex">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Поиск по названию..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-end">
+                    <div class="btn-group me-2">
+                        <a href="{% url 'document_list' %}" class="btn btn-outline-secondary {% if not current_status and not doc_type %}active{% endif %}">
+                            <i class="bi bi-files me-1"></i> Все
+                        </a>
+                        <a href="{% url 'document_list' %}?type=incoming" class="btn btn-outline-secondary {% if doc_type == 'incoming' %}active{% endif %}">
+                            <i class="bi bi-box-arrow-in-down-right me-1"></i> Входящие
+                        </a>
+                        <a href="{% url 'document_list' %}?type=outgoing" class="btn btn-outline-secondary {% if doc_type == 'outgoing' %}active{% endif %}">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Исходящие
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-start">
+                    <a href="{% url 'document_list' %}?status=draft" class="btn btn-sm btn-outline-secondary m-1 {% if current_status == 'draft' %}active{% endif %}">
+                        <i class="bi bi-pencil me-1"></i> Черновики
+                    </a>
+                    <a href="{% url 'document_list' %}?status=pending" class="btn btn-sm btn-outline-secondary m-1 {% if current_status == 'pending' %}active{% endif %}">
+                        <i class="bi bi-hourglass-split me-1"></i> На подтверждение
+                    </a>
+                    <a href="{% url 'document_list' %}?status=approved" class="btn btn-sm btn-outline-secondary m-1 {% if current_status == 'approved' %}active{% endif %}">
+                        <i class="bi bi-check-circle me-1"></i> Подтвержденные
+                    </a>
+                    <a href="{% url 'document_list' %}?status=signed" class="btn btn-sm btn-outline-secondary m-1 {% if current_status == 'signed' %}active{% endif %}">
+                        <i class="bi bi-pen me-1"></i> Подписанные
+                    </a>
+                    
+                    <div class="dropdown ms-auto">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-sort-down me-1"></i> Сортировка
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item {% if sort_by == '-created_at' %}active{% endif %}" href="?sort=-created_at"><i class="bi bi-arrow-down me-2"></i>Сначала новые</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'created_at' %}active{% endif %}" href="?sort=created_at"><i class="bi bi-arrow-up me-2"></i>Сначала старые</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'title' %}active{% endif %}" href="?sort=title"><i class="bi bi-sort-alpha-down me-2"></i>По названию (А-Я)</a></li>
+                            <li><a class="dropdown-item {% if sort_by == '-title' %}active{% endif %}" href="?sort=-title"><i class="bi bi-sort-alpha-up me-2"></i>По названию (Я-А)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Таблица документов -->
+        {% if documents %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Автор</th>
+                        <th>Дата создания</th>
+                        <th>Статус</th>
+                        <th>Тип</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td><a href="{% url 'document_detail' document.pk %}" class="text-decoration-none fw-medium">{{ document.title }}</a></td>
+                        <td>{{ document.author.get_full_name }}</td>
+                        <td>
+                            <span class="text-body-secondary">
+                                <i class="bi bi-calendar-event me-1"></i> {{ document.created_at|date:"d.m.Y H:i" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if document.status == 'draft' %}
+                            <span class="badge bg-secondary"><i class="bi bi-pencil me-1"></i>Черновик</span>
+                            {% elif document.status == 'pending' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>На рассмотрении</span>
+                            {% elif document.status == 'approved' %}
+                            <span class="badge bg-primary"><i class="bi bi-check-circle me-1"></i>Подтвержден</span>
+                            {% elif document.status == 'signed' %}
+                            <span class="badge bg-success"><i class="bi bi-pen me-1"></i>Подписан</span>
+                            {% elif document.status == 'rejected' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Отклонен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if document.is_incoming %}
+                            <span class="badge bg-info"><i class="bi bi-box-arrow-in-down-right me-1"></i>Входящий</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>Исходящий</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'document_detail' document.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if document.status == 'draft' and document.author == user %}
+                                <a href="{% url 'document_edit' document.pk %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if document.status == 'pending' and user.role == 'director' %}
+                                <a href="{% url 'document_approve' document.pk %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-check-lg"></i>
+                                </a>
+                                <a href="{% url 'document_reject' document.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                                {% endif %}
+                                {% if document.status == 'approved' and user.role == 'lawyer' %}
+                                <a href="{% url 'document_sign' document.pk %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-pen"></i> Подписать
+                                </a>
+                                <a href="{% url 'document_reject' document.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+                <span>Документы не найдены. <a href="{% url 'document_create' %}" class="alert-link">Создать новый документ?</a></span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Статистика входов - AgynServis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css">
+<style>
+    .chart-container {
+        position: relative;
+        height: 50vh;
+        max-height: 400px;
+        min-height: 250px;
+        width: 100%;
+    }
+    
+    /* Smaller screens adjustments */
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 40vh;
+            min-height: 200px;
+        }
+        
+        .display-4 {
+            font-size: calc(1.4rem + 3vw);
+        }
+        
+        .stat-card-text {
+            font-size: 0.85rem;
+        }
+        
+        .table-column-sm {
+            min-width: 80px;
+        }
+        
+        .table-column-md {
+            min-width: 120px;
+        }
+        
+        .table-column-lg {
+            min-width: 200px;
+        }
+    }
+    
+    #loginMap {
+        height: 400px;
+        width: 100%;
+        border-radius: 8px;
+    }
+    
+    @media (max-width: 576px) {
+        #loginMap {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8 mb-3 mb-md-0">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-graph-up"></i> Статистика входов
+        </h1>
+        <p class="text-muted">Аналитика входов в систему за последние 30 дней</p>
+        
+        {% if url_error %}
+        <div class="alert alert-danger">
+            <p><strong>Ошибка URL:</strong> {{ url_error }}</p>
+        </div>
+        {% endif %}
+        
+        {% if staff_dashboard_url %}
+        <div class="alert alert-info">
+            <p><strong>URL панели:</strong> {{ staff_dashboard_url }}</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4 text-md-end">
+        {% if user.is_staff or user.role == 'admin' %}
+        <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-speedometer2 me-2"></i> Панель администратора
+        </a>
+        {% else %}
+        <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-person me-2"></i> Вернуться в профиль
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Карточки с общими данными -->
+    <div class="col-6 col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="display-4 fw-bold text-primary mb-2">{{ total_logins }}</div>
+                <h5 class="card-title">Всего входов</h5>
+                <p class="card-text text-muted stat-card-text">За все время</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="display-4 fw-bold text-success mb-2">{{ logins_last_month }}</div>
+                <h5 class="card-title">За 30 дней</h5>
+                <p class="card-text text-muted stat-card-text">
+                    {% if logins_last_month_change > 0 %}
+                    <span class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> {{ logins_last_month_change }}%</span>
+                    {% elif logins_last_month_change < 0 %}
+                    <span class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> {{ logins_last_month_change|abs }}%</span>
+                    {% else %}
+                    <span class="text-muted"><i class="bi bi-dash-circle-fill"></i> 0%</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="display-4 fw-bold text-info mb-2">{{ logins_last_week }}</div>
+                <h5 class="card-title">За 7 дней</h5>
+                <p class="card-text text-muted stat-card-text">
+                    {% if logins_last_week_change > 0 %}
+                    <span class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> {{ logins_last_week_change }}%</span>
+                    {% elif logins_last_week_change < 0 %}
+                    <span class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> {{ logins_last_week_change|abs }}%</span>
+                    {% else %}
+                    <span class="text-muted"><i class="bi bi-dash-circle-fill"></i> 0%</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="display-4 fw-bold text-warning mb-2">{{ active_users }}</div>
+                <h5 class="card-title">Активные</h5>
+                <p class="card-text text-muted stat-card-text">Вход за 7 дней</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- График активности по дням недели -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-bar-chart-fill text-primary"></i> Активность по дням недели
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- График активности по часам -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-clock-history text-primary"></i> Активность по часам
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица пользователей с наибольшим количеством входов -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="card-title mb-0 fw-bold my-2">
+            <i class="bi bi-people-fill text-primary"></i> Наиболее активные пользователи
+        </h5>
+        <button class="btn btn-sm btn-outline-primary my-2" id="toggleTable">
+            <i class="bi bi-eye"></i> Показать всех
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th class="table-column-lg">Пользователь</th>
+                        <th class="table-column-sm">Роль</th>
+                        <th class="table-column-sm">Входы</th>
+                        <th class="table-column-md">Последний вход</th>
+                        <th class="table-column-sm">Устройства</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_stat in top_users %}
+                    <tr class="{% if forloop.counter > 5 %}d-none{% endif %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle text-primary me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-medium">{{ user_stat.user.get_full_name }}</div>
+                                    <small class="text-muted">{{ user_stat.user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ user_stat.user.get_role_display }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-bold">{{ user_stat.login_count }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ user_stat.last_login|date:"d.m.Y H:i" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                {% for device in user_stat.devices %}
+                                {% if device == 'desktop' %}
+                                <span class="badge bg-info"><i class="bi bi-pc-display"></i></span>
+                                {% elif device == 'mobile' %}
+                                <span class="badge bg-success"><i class="bi bi-phone"></i></span>
+                                {% elif device == 'tablet' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-tablet"></i></span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-question-circle"></i></span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Карта IP-адресов -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0 fw-bold">
+            <i class="bi bi-globe text-primary"></i> География входов
+        </h5>
+    </div>
+    <div class="card-body">
+        <div id="loginMap"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Helper function to get current theme colors
+    const getThemeColor = (colorVar) => {
+        return getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim();
+    };
+    
+    // Function to update chart colors based on theme
+    const getChartColors = () => {
+        // Use CSS variables from theme
+        const primaryColor = 'rgba(58, 134, 255, 1)';
+        const primaryLight = 'rgba(58, 134, 255, 0.2)';
+        const secondaryColor = 'rgba(131, 56, 236, 1)';
+        const secondaryLight = 'rgba(131, 56, 236, 0.2)';
+        
+        return {
+            primary: primaryColor,
+            primaryLight: primaryLight,
+            secondary: secondaryColor,
+            secondaryLight: secondaryLight
+        };
+    };
+    
+    // Get colors for charts
+    const colors = getChartColors();
+    
+    // Responsive font sizes
+    Chart.defaults.font.size = window.innerWidth < 768 ? 11 : 14;
+    
+    // Данные по дням недели
+    const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+    const weekdayData = {
+        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+        datasets: [{
+            label: 'Количество входов',
+            data: {{ weekday_data|safe }},
+            backgroundColor: colors.primaryLight,
+            borderColor: colors.primary,
+            borderWidth: 1
+        }]
+    };
+    new Chart(weekdayCtx, {
+        type: 'bar',
+        data: weekdayData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: window.innerWidth >= 768
+                }
+            }
+        }
+    });
+
+    // Данные по часам
+    const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+    const hourlyLabels = window.innerWidth < 768 ? 
+        Array.from({length: 24}, (_, i) => i % 3 === 0 ? `${i}:00` : '') : 
+        Array.from({length: 24}, (_, i) => `${i}:00`);
+        
+    const hourlyData = {
+        labels: hourlyLabels,
+        datasets: [{
+            label: 'Количество входов',
+            data: {{ hourly_data|safe }},
+            backgroundColor: colors.secondaryLight,
+            borderColor: colors.secondary,
+            borderWidth: 1,
+            tension: 0.4
+        }]
+    };
+    new Chart(hourlyCtx, {
+        type: 'line',
+        data: hourlyData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: window.innerWidth >= 768
+                }
+            }
+        }
+    });
+
+    // Инициализация карты
+    const map = L.map('loginMap').setView([51.505, -0.09], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Добавление маркеров на карту
+    const locations = {{ map_data|safe }};
+    locations.forEach(loc => {
+        L.marker([loc.lat, loc.lng])
+            .addTo(map)
+            .bindPopup(`<b>${loc.city}</b><br>Входов: ${loc.count}`);
+    });
+
+    // Переключение таблицы пользователей
+    document.getElementById('toggleTable').addEventListener('click', function() {
+        const button = this;
+        const hiddenRows = document.querySelectorAll('tr.d-none');
+        
+        if (hiddenRows.length > 0) {
+            hiddenRows.forEach(row => row.classList.remove('d-none'));
+            button.innerHTML = '<i class="bi bi-eye-slash"></i> Показать меньше';
+        } else {
+            const allRows = document.querySelectorAll('tbody tr');
+            for (let i = 5; i < allRows.length; i++) {
+                allRows[i].classList.add('d-none');
+            }
+            button.innerHTML = '<i class="bi bi-eye"></i> Показать всех';
+        }
+    });
+    
+    // Handle responsive map
+    window.addEventListener('resize', function() {
+        map.invalidateSize();
+    });
+});
+</script>
+{% endblock %} 

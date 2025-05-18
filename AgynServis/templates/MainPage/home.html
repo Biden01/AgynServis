@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - AgynServis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .service-image {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .service-image:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .service-image img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1 class="mb-4">Добро пожаловать в AgynServis</h1>
+        <p class="lead">Мы предлагаем широкий спектр услуг для вашего бизнеса и дома.</p>
+        
+        <h2 class="mt-5 mb-4">Наши услуги</h2>
+        <div class="row">
+            {% for service in services %}
+            <div class="col-md-6 mb-4">
+                <div class="service-image">
+                    {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="Услуга">
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-3 mb-5">
+            <a href="{% url 'MainPage:services' %}" class="btn btn-primary">Посмотреть все услуги</a>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Свяжитесь с нами</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100">Отправить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

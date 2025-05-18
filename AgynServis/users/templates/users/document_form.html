@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Создать документ - AgynServis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        padding: 1.5rem;
+        border-radius: 12px;
+        background-color: rgba(0,0,0,0.01);
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    [data-bs-theme="dark"] .form-section {
+        background-color: rgba(255,255,255,0.02);
+    }
+    
+    .form-section h5 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+    
+    textarea.form-control {
+        min-height: 200px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-lg-9 col-md-10">
+        <div class="card">
+            <div class="card-header py-3">
+                <h3 class="text-center mb-0 fw-bold">Создание документа</h3>
+            </div>
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-file-earmark-text me-2"></i>Информация о документе</h5>
+                        {{ form.as_p }}
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-shield-lock me-2"></i>Пароль для цифровой подписи</h5>
+                        <p class="text-muted mb-4">Этот пароль будет использоваться для защиты вашей цифровой подписи. Запомните его, он потребуется при редактировании документов.</p>
+                        {{ key_form.as_p }}
+                    </div>
+                    
+                    <div class="d-grid gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Создать документ
+                        </button>
+                        <a href="{% url 'document_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Вернуться к списку документов
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

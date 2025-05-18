@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Личный кабинет - AgynServis{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            /* Основная цветовая схема (светлая тема) */
+            --primary-color: #2563eb;         /* Синий */
+            --secondary-color: #7c3aed;       /* Фиолетовый */
+            --accent-color: #ea580c;          /* Оранжевый */
+            --success-color: #16a34a;         /* Зеленый */
+            --warning-color: #ca8a04;         /* Желтый */
+            --danger-color: #dc2626;          /* Красный */
+            --info-color: #0284c7;            /* Голубой */
+            
+            /* Фоны и текст (светлая тема) */
+            --bg-color: #f8fafc;              /* Основной фон */
+            --card-bg: #ffffff;               /* Фон карточек */
+            --text-color: #1e293b;            /* Основной текст */
+            --text-muted: #64748b;            /* Приглушенный текст */
+            --border-color: #e2e8f0;          /* Цвет границ */
+            
+            /* Тени и эффекты */
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --hover-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+            --input-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            
+            /* Компоненты dashboard */
+            --sidebar-bg: #f1f5f9;
+            --sidebar-border: #e2e8f0;
+            --sidebar-link-color: #1e293b;
+            --sidebar-hover-bg: #e2e8f0;
+            --sidebar-active-bg: #dbeafe;
+            --sidebar-active-color: #2563eb;
+            --header-bg: #ffffff;
+            --header-border: #e2e8f0;
+        }
+
+        [data-bs-theme="dark"] {
+            /* Основная цветовая схема (темная тема) */
+            --primary-color: #3b82f6;         /* Синий */
+            --secondary-color: #8b5cf6;       /* Фиолетовый */
+            --accent-color: #f97316;          /* Оранжевый */
+            --success-color: #22c55e;         /* Зеленый */
+            --warning-color: #eab308;         /* Желтый */
+            --danger-color: #ef4444;          /* Красный */
+            --info-color: #0ea5e9;            /* Голубой */
+            
+            /* Фоны и текст (темная тема) */
+            --bg-color: #0f172a;              /* Основной фон */
+            --card-bg: #1e293b;               /* Фон карточек */
+            --text-color: #e2e8f0;            /* Основной текст */
+            --text-muted: #94a3b8;            /* Приглушенный текст */
+            --border-color: #334155;          /* Цвет границ */
+            
+            /* Компоненты dashboard */
+            --sidebar-bg: #1e293b;
+            --sidebar-border: #334155;
+            --sidebar-link-color: #e2e8f0;
+            --sidebar-hover-bg: #334155;
+            --sidebar-active-bg: #1e40af;
+            --sidebar-active-color: #ffffff;
+            --header-bg: #1e293b;
+            --header-border: #334155;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+        }
+        
+        .sidebar .nav-link {
+            color: var(--sidebar-link-color);
+            font-weight: 500;
+            padding: 0.8rem 1.2rem;
+            margin: 0.3rem 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar .nav-link.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-color);
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: var(--sidebar-hover-bg);
+            transform: translateX(3px);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .dashboard-header {
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        
+        .dashboard-header h4 {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        main {
+            padding-top: 1rem;
+            padding-bottom: 3rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: var(--input-shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid transparent;
+        }
+        
+        .alert-success {
+            border-left-color: var(--success-color);
+            background-color: rgba(22, 163, 74, 0.1);
+            color: var(--success-color);
+        }
+        
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            background-color: rgba(202, 138, 4, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .alert-danger {
+            border-left-color: var(--danger-color);
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .alert-info {
+            border-left-color: var(--info-color);
+            background-color: rgba(2, 132, 199, 0.1);
+            color: var(--info-color);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block sidebar py-4">
+            <div class="position-sticky">
+                <div class="text-center mb-4">
+                    <a href="{% url 'MainPage:home' %}" class="d-flex justify-content-center align-items-center text-decoration-none">
+                        <i class="bi bi-building fs-3 me-2 text-primary"></i>
+                        <span class="fs-4 fw-bold text-primary">AgynServis</span>
+                    </a>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'staff_dashboard' or request.resolver_match.url_name == 'client_dashboard' %}active{% endif %}" href="{% url 'staff_dashboard' %}">
+                            <i class="bi bi-house"></i> Главная
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'document_list' %}active{% endif %}" href="{% url 'document_list' %}">
+                            <i class="bi bi-file-earmark-text"></i> Документы
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'document_create' %}active{% endif %}" href="{% url 'document_create' %}">
+                            <i class="bi bi-plus-square"></i> Создать документ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                            <i class="bi bi-person"></i> Профиль
+                        </a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <form action="{% url 'logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link text-danger border-0 bg-transparent">
+                                <i class="bi bi-box-arrow-right"></i> Выйти
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <main class="col-md-10 ms-sm-auto px-md-4 px-3">
+            <div class="dashboard-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{% block dashboard_title %}Панель управления{% endblock %}</h4>
+                <span class="text-muted">{{ user.username }}</span>
+            </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Проверяем сохраненную тему
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html> 

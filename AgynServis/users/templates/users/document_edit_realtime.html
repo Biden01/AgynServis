@@ -1,0 +1,587 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактирование документа - AgynServis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .document-editor {
+        height: calc(100vh - 250px);
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .editor-header {
+        background: linear-gradient(135deg, var(--primary-color-light), var(--secondary-color-light));
+        border-radius: 8px 8px 0 0;
+        padding: 1rem;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-bottom: none;
+    }
+    
+    .editor-body {
+        flex: 1;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        display: flex;
+    }
+    
+    .editor-sidebar {
+        width: 250px;
+        border-right: 1px solid var(--border-color);
+        padding: 1rem;
+        background-color: var(--secondary-bg);
+    }
+    
+    .editor-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .editor-toolbar {
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+    }
+    
+    .editor-content {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    
+    #document-title {
+        font-size: 1.25rem;
+        padding: 0.5rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+    
+    #document-content {
+        width: 100%;
+        height: 100%;
+        resize: none;
+        border: none;
+        padding: 1rem;
+        font-family: 'Arial', sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+    
+    #document-content:focus {
+        outline: none;
+    }
+    
+    .collaborator-item {
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .collaborator-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        font-weight: bold;
+    }
+    
+    .cursor-indicator {
+        position: absolute;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 100;
+    }
+    
+    .editing-status {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+    
+    .version-info {
+        padding: 0.5rem;
+        background-color: var(--card-bg);
+        border-radius: 4px;
+        margin-top: 1rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .key-form {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background-color: var(--card-bg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-0">
+                <i class="bi bi-file-earmark-text me-2"></i> Редактирование документа
+            </h2>
+            <p class="text-muted">{{ document.title }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'document_detail' document.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Назад к документу
+            </a>
+        </div>
+    </div>
+    
+    <div class="document-editor">
+        <div class="editor-header">
+            <input type="text" id="document-title" value="{{ document.title }}" placeholder="Название документа">
+        </div>
+        <div class="editor-body">
+            <div class="editor-sidebar">
+                <h5><i class="bi bi-people me-2"></i>Соавторы</h5>
+                <div id="collaborators-list">
+                    <div class="collaborator-item">
+                        <div class="collaborator-avatar">{{ request.user.username.0|upper }}</div>
+                        <div>
+                            <div>{{ request.user.username }} (вы)</div>
+                            <div class="editing-status">Редактирование...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="version-info">
+                    <h6><i class="bi bi-clock-history me-1"></i> Версия документа</h6>
+                    <p class="mb-1">Версия: {{ document.versions.count }}</p>
+                    <p class="mb-0">Обновлено: {{ document.updated_at|date:"d.m.Y H:i" }}</p>
+                </div>
+                
+                <div class="key-form">
+                    <h6><i class="bi bi-key me-1"></i> Ключ подписи</h6>
+                    <p class="small text-muted mb-2">Для сохранения изменений и подписи документа, введите пароль ключа:</p>
+                    <div class="form-group">
+                        <input type="password" class="form-control form-control-sm" id="key-password" placeholder="Пароль ключа">
+                    </div>
+                </div>
+            </div>
+            <div class="editor-main">
+                <div class="editor-toolbar">
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-bold">
+                        <i class="bi bi-type-bold"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-italic">
+                        <i class="bi bi-type-italic"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-underline">
+                        <i class="bi bi-type-underline"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-3" id="btn-strikethrough">
+                        <i class="bi bi-type-strikethrough"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-align-left">
+                        <i class="bi bi-text-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-align-center">
+                        <i class="bi bi-text-center"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-3" id="btn-align-right">
+                        <i class="bi bi-text-right"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="btn-list-ul">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-3" id="btn-list-ol">
+                        <i class="bi bi-list-ol"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-primary ms-auto" id="btn-save">
+                        <i class="bi bi-save me-1"></i> Сохранить
+                    </button>
+                </div>
+                <div class="editor-content">
+                    <textarea id="document-content" placeholder="Содержание документа...">{{ document.content }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Получаем информацию о документе
+    const documentId = "{{ document.id }}";
+    const userId = "{{ request.user.id }}";
+    const username = "{{ request.user.username }}";
+    const csrfToken = "{{ csrf_token }}";
+    
+    // Создаем websocket соединение
+    const websocketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const websocketUrl = `${websocketProtocol}//${window.location.host}/ws/document/${documentId}/`;
+    let socket = null;
+    let isConnected = false;
+    let collaborators = [];
+    
+    // DOM элементы
+    const documentContent = document.getElementById('document-content');
+    const documentTitle = document.getElementById('document-title');
+    const collaboratorsList = document.getElementById('collaborators-list');
+    const btnSave = document.getElementById('btn-save');
+    const keyPassword = document.getElementById('key-password');
+    
+    // Карта курсоров других пользователей
+    const userCursors = {};
+    
+    // Инициализация WebSocket соединения
+    function initWebSocket() {
+        socket = new WebSocket(websocketUrl);
+        
+        socket.onopen = function(e) {
+            console.log('WebSocket соединение установлено');
+            isConnected = true;
+            
+            // Отправляем начальное положение курсора
+            sendCursorPosition();
+        };
+        
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log('WebSocket сообщение получено:', data);
+            
+            switch (data.type) {
+                case 'content_change':
+                    handleContentChange(data);
+                    break;
+                case 'cursor_move':
+                    handleCursorMove(data);
+                    break;
+                case 'user_list':
+                    updateCollaboratorsList(data.users);
+                    break;
+                case 'document_status':
+                    handleDocumentStatus(data);
+                    break;
+            }
+        };
+        
+        socket.onclose = function(e) {
+            console.log('WebSocket соединение закрыто');
+            isConnected = false;
+            
+            // Пытаемся переподключиться через 3 секунды
+            setTimeout(function() {
+                initWebSocket();
+            }, 3000);
+        };
+        
+        socket.onerror = function(error) {
+            console.error('WebSocket ошибка:', error);
+        };
+    }
+    
+    // Обработка изменения содержимого от других пользователей
+    function handleContentChange(data) {
+        // Сохраняем текущее положение курсора
+        const selStart = documentContent.selectionStart;
+        const selEnd = documentContent.selectionEnd;
+        
+        // Обновляем содержимое
+        documentContent.value = data.content;
+        
+        // Восстанавливаем положение курсора
+        documentContent.setSelectionRange(selStart, selEnd);
+        
+        // Обновляем положение курсора пользователя, отправившего изменения
+        updateCollaboratorCursor(data.user_id, data.username, data.cursor_position);
+    }
+    
+    // Обработка перемещения курсора от других пользователей
+    function handleCursorMove(data) {
+        updateCollaboratorCursor(data.user_id, data.username, data.cursor_position);
+    }
+    
+    // Обновление положения курсора сотрудника
+    function updateCollaboratorCursor(userId, username, position) {
+        // Создаем или обновляем индикатор курсора
+        if (!userCursors[userId]) {
+            const cursorEl = document.createElement('div');
+            cursorEl.className = 'cursor-indicator';
+            cursorEl.style.backgroundColor = getRandomColor(userId);
+            cursorEl.style.color = 'white';
+            document.body.appendChild(cursorEl);
+            userCursors[userId] = cursorEl;
+        }
+        
+        // Получаем позицию в тексте
+        const textPosition = getTextCoordinates(position);
+        if (textPosition) {
+            userCursors[userId].style.left = `${textPosition.left}px`;
+            userCursors[userId].style.top = `${textPosition.top}px`;
+            userCursors[userId].textContent = username;
+            userCursors[userId].style.display = 'block';
+        }
+    }
+    
+    // Обновление списка соавторов
+    function updateCollaboratorsList(users) {
+        // Очищаем список, кроме текущего пользователя
+        let html = `
+            <div class="collaborator-item">
+                <div class="collaborator-avatar">${username.charAt(0).toUpperCase()}</div>
+                <div>
+                    <div>${username} (вы)</div>
+                    <div class="editing-status">Редактирование...</div>
+                </div>
+            </div>
+        `;
+        
+        // Добавляем других соавторов
+        users.forEach(user => {
+            const color = getRandomColor(user.id);
+            html += `
+                <div class="collaborator-item">
+                    <div class="collaborator-avatar" style="background-color: ${color}">
+                        ${user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div>${user.username}</div>
+                        <div class="editing-status">Редактирование...</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        collaboratorsList.innerHTML = html;
+    }
+    
+    // Обработка изменения статуса документа
+    function handleDocumentStatus(data) {
+        console.log('Статус документа изменен:', data);
+        // Здесь можно добавить логику для уведомления пользователей о блокировке/разблокировке документа
+    }
+    
+    // Функция для отправки изменений содержимого
+    function sendContentChange() {
+        if (isConnected) {
+            const content = documentContent.value;
+            const cursorPosition = documentContent.selectionStart;
+            
+            socket.send(JSON.stringify({
+                type: 'content_change',
+                content: content,
+                cursor_position: cursorPosition
+            }));
+        }
+    }
+    
+    // Функция для отправки положения курсора
+    function sendCursorPosition() {
+        if (isConnected) {
+            const cursorPosition = documentContent.selectionStart;
+            
+            socket.send(JSON.stringify({
+                type: 'cursor_move',
+                cursor_position: cursorPosition
+            }));
+        }
+    }
+    
+    // Получение координат текста по позиции курсора
+    function getTextCoordinates(position) {
+        // Создаем временный элемент для расчета позиции
+        const tempSpan = document.createElement('span');
+        tempSpan.textContent = '\u200B'; // Zero-width space
+        
+        // Вставляем временный элемент в позицию курсора
+        const text = documentContent.value;
+        const textBefore = text.substring(0, position);
+        const textAfter = text.substring(position);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.top = '-9999px';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.width = `${documentContent.offsetWidth}px`;
+        tempDiv.style.fontSize = window.getComputedStyle(documentContent).fontSize;
+        tempDiv.style.fontFamily = window.getComputedStyle(documentContent).fontFamily;
+        tempDiv.style.lineHeight = window.getComputedStyle(documentContent).lineHeight;
+        tempDiv.style.whiteSpace = 'pre-wrap';
+        tempDiv.style.wordWrap = 'break-word';
+        
+        tempDiv.textContent = textBefore;
+        tempDiv.appendChild(tempSpan);
+        tempDiv.appendChild(document.createTextNode(textAfter));
+        
+        document.body.appendChild(tempDiv);
+        
+        const spanRect = tempSpan.getBoundingClientRect();
+        const editorRect = documentContent.getBoundingClientRect();
+        
+        document.body.removeChild(tempDiv);
+        
+        return {
+            left: editorRect.left + spanRect.left - document.documentElement.scrollLeft,
+            top: editorRect.top + spanRect.top - document.documentElement.scrollTop
+        };
+    }
+    
+    // Генерация случайного цвета на основе ID пользователя
+    function getRandomColor(userId) {
+        // Используем ID для генерации детерминированного цвета
+        const hue = parseInt(userId) % 360;
+        return `hsl(${hue}, 70%, 50%)`;
+    }
+    
+    // Обработчики событий
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация WebSocket
+        initWebSocket();
+        
+        // Обработчик изменения содержимого
+        let contentChangeTimeout;
+        documentContent.addEventListener('input', function() {
+            clearTimeout(contentChangeTimeout);
+            contentChangeTimeout = setTimeout(function() {
+                sendContentChange();
+            }, 300); // Задержка 300мс перед отправкой изменений
+        });
+        
+        // Обработчик изменения положения курсора
+        let cursorMoveTimeout;
+        documentContent.addEventListener('click', function() {
+            clearTimeout(cursorMoveTimeout);
+            cursorMoveTimeout = setTimeout(function() {
+                sendCursorPosition();
+            }, 100);
+        });
+        
+        documentContent.addEventListener('keyup', function(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                clearTimeout(cursorMoveTimeout);
+                cursorMoveTimeout = setTimeout(function() {
+                    sendCursorPosition();
+                }, 100);
+            }
+        });
+        
+        // Обработчик сохранения документа
+        btnSave.addEventListener('click', function() {
+            const title = documentTitle.value;
+            const content = documentContent.value;
+            const password = keyPassword.value;
+            
+            if (!password) {
+                alert('Пожалуйста, введите пароль ключа для сохранения документа');
+                return;
+            }
+            
+            // Отправляем данные на сервер для сохранения
+            fetch(`/users/document/${documentId}/save/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Документ успешно сохранен!');
+                } else {
+                    alert(`Ошибка: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при сохранении документа');
+            });
+        });
+        
+        // Кнопки форматирования текста
+        document.getElementById('btn-bold').addEventListener('click', function() {
+            insertFormatting('**', '**');
+        });
+        
+        document.getElementById('btn-italic').addEventListener('click', function() {
+            insertFormatting('*', '*');
+        });
+        
+        document.getElementById('btn-underline').addEventListener('click', function() {
+            insertFormatting('__', '__');
+        });
+        
+        document.getElementById('btn-strikethrough').addEventListener('click', function() {
+            insertFormatting('~~', '~~');
+        });
+        
+        // Предотвращаем выгрузку страницы без сохранения изменений
+        window.addEventListener('beforeunload', function(e) {
+            const originalContent = {{ document.content|safe|escapejs }};
+            const currentContent = documentContent.value;
+            
+            if (originalContent !== currentContent) {
+                e.preventDefault();
+                e.returnValue = 'У вас есть несохраненные изменения. Вы действительно хотите покинуть страницу?';
+                return e.returnValue;
+            }
+        });
+    });
+    
+    // Функция для вставки форматированного текста
+    function insertFormatting(startTag, endTag) {
+        const textArea = documentContent;
+        const start = textArea.selectionStart;
+        const end = textArea.selectionEnd;
+        const selectedText = textArea.value.substring(start, end);
+        const replacement = startTag + selectedText + endTag;
+        
+        textArea.value = textArea.value.substring(0, start) + replacement + textArea.value.substring(end);
+        textArea.focus();
+        textArea.setSelectionRange(start + startTag.length, start + startTag.length + selectedText.length);
+        
+        // Отправляем обновление
+        sendContentChange();
+    }
+    
+    // Очистка перед закрытием страницы
+    window.addEventListener('unload', function() {
+        // Закрываем WebSocket
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+        
+        // Удаляем курсоры с документа
+        for (const userId in userCursors) {
+            if (userCursors[userId].parentNode) {
+                userCursors[userId].parentNode.removeChild(userCursors[userId]);
+            }
+        }
+    });
+</script>
+{% endblock %} 
