@@ -1,6 +1,8 @@
 Django==5.2.1
 python-dotenv==1.0.1
-Pillow==9.5.0
+Pillow
 django-crispy-forms==2.1
 crispy-bootstrap5==2023.10
-cryptography==42.0.5 
+cryptography==42.0.5
+channels
+user-agents 

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ document.title }} - AgynServis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-file-earmark-text"></i> Связанный документ
+                </h1>
+                <a href="{% url 'document_detail' document.pk %}" class="btn btn-primary">
+                    <i class="bi bi-eye"></i> Просмотреть полностью
+                </a>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="document-number">
+                            {{ document.document_number|default:document.id }}
+                        </div>
+                        <div class="document-title">
+                            {{ document.title }}
+                        </div>
+                        <div class="document-info mb-3">
+                            <small class="text-muted">Автор: {{ document.author.get_full_name }}</small><br>
+                            <small class="text-muted">Дата создания: {{ document.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Статус документа:</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-3">
+                                {% if document.status == 'draft' %}
+                                <div class="btn btn-lg btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i> ЧЕРНОВИК
+                                </div>
+                                {% elif document.status == 'pending' %}
+                                <div class="btn btn-lg btn-outline-warning">
+                                    <i class="bi bi-hourglass-split"></i> НА РАССМОТРЕНИИ
+                                </div>
+                                {% elif document.status == 'approved' %}
+                                <div class="btn btn-lg btn-outline-primary">
+                                    <i class="bi bi-check-circle"></i> ПОДТВЕРЖДЕН
+                                </div>
+                                {% elif document.status == 'signed' %}
+                                <div class="btn btn-lg btn-outline-success">
+                                    <i class="bi bi-pen"></i> ПОДПИСАН ЮРИСТОМ
+                                </div>
+                                {% elif document.status == 'rejected' %}
+                                <div class="btn btn-lg btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i> ОТКЛОНЕН
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if document.current_approver %}
+                    <div class="card mt-3">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Текущее согласование:</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Ожидает согласования:</strong> {{ document.current_approver.get_full_name }}</p>
+                            <p><strong>Роль:</strong> {{ document.current_approver.get_role_display }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

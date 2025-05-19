@@ -90,6 +90,66 @@
         .navbar-brand {
             font-weight: 700;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-shape {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2563eb, #0091FF);
+            border-radius: 10px;
+            transform: rotate(45deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-shape:before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        .logo-letter {
+            color: white;
+            font-size: 22px;
+            font-weight: 800;
+            transform: rotate(-45deg);
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+            font-family: 'Inter', -apple-system, sans-serif;
+            letter-spacing: -1px;
+        }
+        
+        .brand-text {
+            font-weight: 600;
+            background: linear-gradient(135deg, #2563eb, #0091FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-left: 2px;
+        }
+        
+        .navbar-brand:hover .logo-shape {
+            transform: rotate(45deg) scale(1.08);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
         }
         
         .nav-link {
@@ -333,10 +393,241 @@
             background-color: rgba(255,255,255,0.15);
         }
         
+        /* Game Button */
+        .rabbit-game-btn {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            background-color: #0066FF;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+            overflow: hidden;
+            animation: rabbit-float 3s ease-in-out infinite;
+        }
+        
+        @keyframes rabbit-float {
+            0% { transform: translateY(-50%); }
+            50% { transform: translateY(-50%) translateY(-5px); }
+            100% { transform: translateY(-50%); }
+        }
+        
+        [data-bs-theme="dark"] .rabbit-game-btn {
+            background-color: #0066FF;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .rabbit-game-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            animation: none;
+            background-color: #0055DD;
+        }
+        
+        [data-bs-theme="dark"] .rabbit-game-btn:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        .rabbit-game-btn img {
+            width: 40px;
+            height: 40px;
+        }
+        
+        /* Custom Rabbit Icon */
+        .rabbit-icon {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: block;
+        }
+        
+        .rabbit-icon .body {
+            width: 30px;
+            height: 30px;
+            background-color: #f1c40f;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+        }
+        
+        [data-bs-theme="dark"] .rabbit-icon .body {
+            background-color: #e2e8f0;
+        }
+        
+        .rabbit-icon .ear {
+            width: 8px;
+            height: 20px;
+            background-color: #f1c40f;
+            border-radius: 4px;
+            position: absolute;
+            top: 0;
+        }
+        
+        [data-bs-theme="dark"] .rabbit-icon .ear {
+            background-color: #e2e8f0;
+        }
+        
+        .rabbit-icon .ear-left {
+            left: 12px;
+            transform: rotate(-5deg);
+        }
+        
+        .rabbit-icon .ear-right {
+            right: 12px;
+            transform: rotate(5deg);
+        }
+        
+        .rabbit-icon .eye {
+            width: 4px;
+            height: 4px;
+            background-color: #222;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+        }
+        
+        .rabbit-icon .eye-left {
+            left: 13px;
+        }
+        
+        .rabbit-icon .eye-right {
+            right: 13px;
+        }
+        
+        .rabbit-icon .nose {
+            width: 6px;
+            height: 6px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            position: absolute;
+            top: 24px;
+            left: 17px;
+        }
+
+        /* Game Modal */
+        .game-modal .modal-dialog {
+            max-width: 600px;
+        }
+        
+        .game-modal .modal-content {
+            background-color: var(--bg-color);
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .game-modal .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            background-color: var(--card-bg);
+        }
+        
+        .game-modal .modal-body {
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: #7ec850; /* Фон как в игре */
+            min-height: 480px;
+            border-radius: 0;
+            position: relative;
+        }
+        
+        .game-modal .modal-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            background-color: var(--card-bg);
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        #startScreen {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.75);
+            color: white;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            top: 0;
+            left: 0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        #startScreen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #startScreen p {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        #startScreen button {
+            padding: 0.75rem 2rem;
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #startScreen button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
         /* Responsive improvements */
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 1rem;
+            }
+            
+            .logo-container {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .logo-shape {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .logo-letter {
+                font-size: 18px;
             }
             
             .navbar-collapse {
@@ -349,6 +640,110 @@
                 border-left: 2px solid var(--primary-color);
                 border-radius: 0;
             }
+            
+            .rabbit-game-btn {
+                width: 50px;
+                height: 50px;
+                left: 10px;
+            }
+            
+            .rabbit-icon {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .rabbit-icon .body {
+                width: 25px;
+                height: 25px;
+                left: 5px;
+            }
+            
+            .rabbit-icon .ear {
+                width: 7px;
+                height: 16px;
+            }
+            
+            .rabbit-icon .ear-left {
+                left: 10px;
+            }
+            
+            .rabbit-icon .ear-right {
+                right: 10px;
+            }
+            
+            .game-modal .modal-dialog {
+                max-width: 95%;
+                margin: 10px auto;
+            }
+            
+            .game-modal .modal-body {
+                min-height: 320px;
+            }
+            
+            #startScreen h1 {
+                font-size: 1.8rem;
+            }
+            
+            #startScreen p {
+                font-size: 1rem;
+            }
+            
+            #startScreen button {
+                padding: 0.5rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Document Card Styling */
+        .document-card {
+            position: relative;
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: block;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .document-card .document-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .document-card .document-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .document-card .document-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .document-card .document-status.draft {
+            background-color: #e9ecef;
+            color: #495057;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -357,7 +752,12 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'MainPage:home' %}">
-                <i class="bi bi-building"></i> AgynServis
+                <div class="logo-container me-2">
+                    <div class="logo-shape">
+                        <span class="logo-letter">A</span>
+                    </div>
+                </div>
+                <span class="brand-text">AgynServis</span>
             </a>
             <div class="d-flex ms-auto me-2 order-lg-last">
                 <div class="theme-toggle nav-link d-flex justify-content-center align-items-center" id="theme-toggle" aria-label="Переключить тему">
@@ -449,6 +849,36 @@
             </div>
         </div>
     </nav>
+
+    <!-- Game Button (Blue Smiley) -->
+    <button class="rabbit-game-btn" data-bs-toggle="modal" data-bs-target="#gameModal">
+        <i class="bi bi-emoji-smile" style="font-size: 28px; color: white;"></i>
+    </button>
+
+    <!-- Game Modal -->
+    <div class="modal fade game-modal" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gameModalLabel">Кролик в саду</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="game-container">
+                        <div id="startScreen">
+                            <h1>Кролик в саду</h1>
+                            <p>Собирайте морковки и избегайте волков</p>
+                            <button id="startButton" class="btn btn-primary">Играть</button>
+                        </div>
+                        <canvas id="gameCanvas" width="480" height="480"></canvas>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <main class="container py-4">
         {% if messages %}
@@ -544,8 +974,123 @@
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 setTheme(newTheme);
             });
+            
+            // Game modal events
+            const gameModal = document.getElementById('gameModal');
+            if (gameModal) {
+                // Получаем ссылки на основные элементы игры заранее
+                const canvas = document.getElementById('gameCanvas');
+                const startScreen = document.getElementById('startScreen');
+                
+                // Проверяем наличие Bootstrap Modal
+                if (typeof bootstrap !== 'undefined') {
+                    const modalInstance = new bootstrap.Modal(gameModal);
+                
+                    gameModal.addEventListener('shown.bs.modal', function () {
+                        // Resize game canvas to fit modal if needed
+                        if (canvas) {
+                            const modalBody = gameModal.querySelector('.modal-body');
+                            const modalWidth = modalBody.clientWidth;
+                            const modalHeight = modalBody.clientHeight;
+                            
+                            // Adjust canvas if needed based on modal size
+                            if (modalWidth < canvas.width) {
+                                const scale = modalWidth / canvas.width;
+                                canvas.style.width = `${modalWidth}px`;
+                                canvas.style.height = `${canvas.height * scale}px`;
+                            }
+                            
+                            // Сообщаем игре о правильном размере модального окна
+                            canvas.setAttribute('data-modal-width', modalWidth);
+                            canvas.setAttribute('data-modal-height', modalHeight);
+                        }
+                        
+                        // Force redraw of start screen
+                        if (startScreen) {
+                            startScreen.style.display = 'flex';
+                            startScreen.style.opacity = '1';
+                        }
+                        
+                        // Set custom event for game to know modal is open
+                        window.gameModalOpen = true;
+                        
+                        // Инициализируем игру после открытия модального окна
+                        setTimeout(() => {
+                            const event = new CustomEvent('initGame');
+                            document.dispatchEvent(event);
+                        }, 50);
+                    });
+                    
+                    // When modal is hidden, pause the game
+                    gameModal.addEventListener('hide.bs.modal', function () {
+                        window.gameModalOpen = false;
+                        // Signal to game.js that modal is closing
+                        const event = new CustomEvent('gameModalClosed');
+                        document.dispatchEvent(event);
+                    });
+                } else {
+                    // Если библиотека Bootstrap не загрузилась правильно
+                    console.error('Bootstrap not loaded correctly');
+                    
+                    // Добавляем свои обработчики
+                    const rabbitBtn = document.querySelector('.rabbit-game-btn');
+                    if (rabbitBtn) {
+                        rabbitBtn.addEventListener('click', function() {
+                            gameModal.style.display = 'block';
+                            setTimeout(() => {
+                                const event = new CustomEvent('initGame');
+                                document.dispatchEvent(event);
+                            }, 50);
+                        });
+                    }
+                    
+                    // Обработчик для закрытия
+                    const closeButtons = gameModal.querySelectorAll('[data-bs-dismiss="modal"]');
+                    closeButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            gameModal.style.display = 'none';
+                            const event = new CustomEvent('gameModalClosed');
+                            document.dispatchEvent(event);
+                        });
+                    });
+                }
+            }
         });
     </script>
+    
+    <!-- Game Script -->
+    <script src="{% static 'js/game.js' %}"></script>
+    
+    <script>
+        // Дополнительная проверка инициализации игры
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const rabbitBtn = document.querySelector('.rabbit-game-btn');
+                if (rabbitBtn) {
+                    const testClick = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    
+                    // Слушатель для имитации клика (не выполнится, просто для проверки обработчиков)
+                    rabbitBtn.addEventListener('click', function checkHandler() {
+                        console.log('Game button handlers attached successfully');
+                        rabbitBtn.removeEventListener('click', checkHandler);
+                    }, { once: true });
+                }
+                
+                // Предзагрузка игры
+                const canvas = document.getElementById('gameCanvas');
+                if (canvas) {
+                    const preloadEvent = new CustomEvent('preloadGame');
+                    document.dispatchEvent(preloadEvent);
+                    console.log('Preloading game assets');
+                }
+            }, 500);
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html> 

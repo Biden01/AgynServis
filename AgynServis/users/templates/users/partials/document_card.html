@@ -1,0 +1,21 @@
+{% comment %}
+    Template for rendering a document card that is clickable.
+    
+    Usage:
+    {% include "users/partials/document_card.html" with document=document %}
+{% endcomment %}
+
+<a href="{% url 'document_detail' document.pk %}" class="document-card">
+    <div class="document-icon">
+        <i class="bi bi-file-earmark-text"></i>
+    </div>
+    <div class="document-number">
+        {{ document.document_number|default:document.id }}
+    </div>
+    <div class="document-title">
+        {{ document.title }}
+    </div>
+    <div class="document-status {% if document.status == 'draft' %}draft{% endif %}">
+        <i class="bi bi-pencil me-1"></i> {{ document.get_status_display }}
+    </div>
+</a> 

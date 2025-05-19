@@ -84,7 +84,7 @@
                     </div>
                     <div class="border-bottom">
                         <span class="profile-info-label"><i class="bi bi-briefcase me-2"></i>Специальность:</span>
-                        <span class="fw-medium">{{ user.get_specialty_display }}</span>
+                        <span class="fw-medium">{% if user.specialty %}{{ user.get_specialty_display }}{% else %}Не указана{% endif %}</span>
                     </div>
                     <div class="border-bottom">
                         <span class="profile-info-label"><i class="bi bi-calendar me-2"></i>Дата регистрации:</span>

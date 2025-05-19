@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse
-from .models import Document, DocumentHistory, LoginHistory, User, Comment, DocumentVersion, Task
-from .forms import DocumentForm, UserRegistrationForm, CustomPasswordChangeForm, CommentForm, DocumentVersionForm, AddCollaboratorForm, KeyPasswordForm, TaskForm, LoginForm
+from .models import Document, DocumentHistory, LoginHistory, User, Comment, DocumentVersion, Task, DocumentApproval
+from .forms import DocumentForm, UserRegistrationForm, CustomPasswordChangeForm, CommentForm, DocumentVersionForm, AddCollaboratorForm, KeyPasswordForm, TaskForm, LoginForm, ProfileEditForm
 import hashlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from django.db.models.functions import ExtractWeekDay, ExtractHour
 import json
 import user_agents
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -42,13 +43,13 @@ def register(request):
 @login_required
 def profile(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, instance=request.user)
+        form = ProfileEditForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлен!')
             return redirect('profile')
     else:
-        form = UserRegistrationForm(instance=request.user)
+        form = ProfileEditForm(instance=request.user)
     
     # Получаем статистику документов
     total_documents = Document.objects.filter(author=request.user).count()
@@ -76,13 +77,14 @@ def profile(request):
 @login_required
 def profile_edit(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, instance=request.user)
+        form = ProfileEditForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлен!')
             return redirect('profile')
     else:
-        form = UserRegistrationForm(instance=request.user)
+        form = ProfileEditForm(instance=request.user)
+    
     return render(request, 'users/profile_edit.html', {'form': form})
 
 @login_required
@@ -113,6 +115,9 @@ def document_list(request):
         documents = documents.filter(Q(author__role='director') & ~Q(author=request.user))
     elif doc_type == 'outgoing':
         documents = documents.filter(author=request.user)
+    elif doc_type == 'approval':
+        # Документы, требующие моего согласования
+        documents = documents.filter(current_approver=request.user)
     
     # Поиск по названию
     search_query = request.GET.get('search')
@@ -121,17 +126,35 @@ def document_list(request):
     
     # Фильтрация по роли пользователя
     if request.user.role == 'director':
-        if not status:
-            documents = documents.filter(status='pending')
+        if not doc_type and not status:
+            documents = documents.filter(Q(status='pending') | Q(current_approver=request.user))
     elif request.user.role == 'lawyer':
-        if not status:
-            documents = documents.filter(status='approved')
+        if not doc_type and not status:
+            documents = documents.filter(Q(status='approved') | Q(current_approver=request.user))
     else:
-        documents = documents.filter(Q(author=request.user) | Q(collaborators=request.user))
+        # Для обычных сотрудников - показываем их документы + те, где они согласующие
+        if not doc_type:
+            documents = documents.filter(
+                Q(author=request.user) | 
+                Q(collaborators=request.user) |
+                Q(current_approver=request.user)
+            ).distinct()
     
     # Сортировка
     sort_by = request.GET.get('sort', '-created_at')
     documents = documents.order_by(sort_by)
+    
+    # Пагинация
+    paginator = Paginator(documents, 10)  # 10 документов на страницу
+    page = request.GET.get('page')
+    try:
+        documents = paginator.page(page)
+    except PageNotAnInteger:
+        # Если page не является целым числом, показываем первую страницу
+        documents = paginator.page(1)
+    except EmptyPage:
+        # Если page больше максимального, показываем последнюю страницу
+        documents = paginator.page(paginator.num_pages)
     
     context = {
         'documents': documents,
@@ -139,6 +162,7 @@ def document_list(request):
         'search_query': search_query,
         'sort_by': sort_by,
         'doc_type': doc_type,
+        'pending_approvals': Document.objects.filter(current_approver=request.user).count(),
     }
     return render(request, 'users/document_list.html', context)
 
@@ -168,10 +192,19 @@ def document_create(request):
                         return render(request, 'users/document_form.html', {'form': form, 'key_form': key_form})
                 else:
                     # Если ключа нет, генерируем новый
-                    private_key, public_key = generate_key_pair()
-                    request.user.private_key = encrypt_private_key(private_key, password)
-                    request.user.save()
-                    document.public_key = serialize_public_key(public_key)
+                    try:
+                        private_key, public_key = generate_key_pair()
+                        encrypted_private_key = encrypt_private_key(private_key, password)
+                        if encrypted_private_key:
+                            request.user.private_key = encrypted_private_key
+                            request.user.save()
+                            document.public_key = serialize_public_key(public_key)
+                        else:
+                            messages.error(request, 'Ошибка при шифровании приватного ключа')
+                            return render(request, 'users/document_form.html', {'form': form, 'key_form': key_form})
+                    except Exception as crypto_error:
+                        messages.error(request, f'Ошибка при создании ключей: {str(crypto_error)}')
+                        return render(request, 'users/document_form.html', {'form': form, 'key_form': key_form})
                 
                 # Создание подписи
                 document.signature = sign_document(private_key, document.hash)
@@ -649,6 +682,18 @@ def task_list(request):
     sort_by = request.GET.get('sort', '-created_at')
     tasks = tasks.order_by(sort_by)
     
+    # Пагинация
+    paginator = Paginator(tasks, 10)  # 10 задач на страницу
+    page = request.GET.get('page')
+    try:
+        tasks = paginator.page(page)
+    except PageNotAnInteger:
+        # Если page не является целым числом, показываем первую страницу
+        tasks = paginator.page(1)
+    except EmptyPage:
+        # Если page больше максимального, показываем последнюю страницу
+        tasks = paginator.page(paginator.num_pages)
+    
     context = {
         'tasks': tasks,
         'current_status': status,
@@ -1075,3 +1120,108 @@ def document_save_api(request, pk):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def document_approve_step(request, pk):
+    """Функция согласования текущего шага документа"""
+    document = get_object_or_404(Document, pk=pk)
+    
+    # Проверка, что текущий пользователь является текущим согласовывающим
+    if document.current_approver != request.user:
+        messages.error(request, 'Вы не можете согласовать этот документ на текущем этапе')
+        return redirect('document_detail', pk=pk)
+    
+    try:
+        # Получаем текущее согласование
+        approval = DocumentApproval.objects.get(
+            document=document,
+            approver=request.user,
+            step_number=document.approval_step
+        )
+        
+        # Если это GET запрос, просто показываем форму согласования
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            comment = request.POST.get('comment', '')
+            
+            if action == 'approve':
+                # Обновляем статус согласования
+                approval.status = 'approved'
+                approval.comment = comment
+                approval.save()
+                
+                # Записываем в историю
+                DocumentHistory.objects.create(
+                    document=document,
+                    user=request.user,
+                    action=f'Согласовал этап {document.approval_step}',
+                    status=document.status,
+                    ip_address=get_client_ip(request),
+                    comment=comment
+                )
+                
+                # Переходим к следующему этапу
+                document.advance_approval()
+                
+                messages.success(request, 'Документ успешно согласован и передан на следующий этап')
+            
+            elif action == 'reject':
+                if not comment:
+                    messages.error(request, 'При отклонении необходимо указать причину')
+                    return redirect('document_approve_step', pk=pk)
+                
+                # Обновляем статус согласования и документа
+                approval.status = 'rejected'
+                approval.comment = comment
+                approval.save()
+                
+                document.status = 'rejected'
+                document.save()
+                
+                # Записываем в историю
+                DocumentHistory.objects.create(
+                    document=document,
+                    user=request.user,
+                    action=f'Отклонил на этапе {document.approval_step}',
+                    status='rejected',
+                    ip_address=get_client_ip(request),
+                    comment=comment
+                )
+                
+                messages.warning(request, 'Документ отклонен')
+            
+            return redirect('document_detail', pk=pk)
+            
+        # Получаем всю историю согласований для отображения прогресса
+        all_approvals = DocumentApproval.objects.filter(document=document).order_by('step_number')
+        
+        return render(request, 'users/document_approve_step.html', {
+            'document': document,
+            'approval': approval,
+            'all_approvals': all_approvals
+        })
+        
+    except DocumentApproval.DoesNotExist:
+        messages.error(request, 'Не найдена запись согласования для текущего этапа')
+        return redirect('document_detail', pk=pk)
+
+@login_required
+def linked_document(request, pk):
+    """View for displaying a linked document with its clickable card"""
+    document = get_object_or_404(Document, pk=pk)
+    
+    # Проверяем задания пользователя на связь с этим документом
+    user_has_task_with_document = Task.objects.filter(assigned_to=request.user, document=document).exists()
+    
+    # Check access permissions - добавляем проверку на наличие задания с этим документом
+    if (document.author != request.user and 
+        request.user not in document.collaborators.all() and 
+        request.user.role not in ['director', 'lawyer'] and
+        document.current_approver != request.user and
+        not user_has_task_with_document):
+        messages.error(request, 'У вас нет доступа к этому документу!')
+        return redirect('document_list')
+    
+    return render(request, 'users/linked_document.html', {
+        'document': document
+    })

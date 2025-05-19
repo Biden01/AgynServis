@@ -79,10 +79,12 @@ ASGI_APPLICATION = 'AgynServis.asgi.application'
 # Настройка Channel Layers для WebSockets
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # Если нужно использовать Redis, раскомментируйте следующие строки
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #    "hosts": [('127.0.0.1', 6379)],
+        # },
     },
 }
 

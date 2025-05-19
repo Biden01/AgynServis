@@ -1,16 +1,105 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
-from .models import Document, User, Comment, DocumentVersion, Task
+from .models import Document, User, Comment, DocumentVersion, Task, DocumentApproval
 
 class DocumentForm(forms.ModelForm):
     class Meta:
         model = Document
-        fields = ['title', 'content', 'file']
+        fields = [
+            'title', 
+            'content', 
+            'file', 
+            'addressee', 
+            'signer', 
+            'direct_supervisor'
+        ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название документа'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Текст документа', 'rows': 10}),
             'file': forms.FileInput(attrs={'class': 'form-control'}),
+            'addressee': forms.Select(attrs={'class': 'form-control'}),
+            'signer': forms.Select(attrs={'class': 'form-control'}),
+            'direct_supervisor': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    approvers = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+        label='Согласовывающие'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Ограничиваем выбор пользователей по ролям
+        directors = User.objects.filter(role='director')
+        lawyers = User.objects.filter(role='lawyer')
+        
+        self.fields['signer'].queryset = directors | lawyers
+        self.fields['direct_supervisor'].queryset = directors
+        
+        # Для существующего документа загружаем текущих согласовывающих
+        if self.instance.pk:
+            self.fields['approvers'].initial = self.instance.approvers.all()
+    
+    def save(self, commit=True):
+        document = super().save(commit=False)
+        
+        if commit:
+            document.save()
+            
+            # Сохраняем согласовывающих через m2m
+            if self.cleaned_data.get('approvers'):
+                document.approvers.clear()
+                document.approvers.add(*self.cleaned_data['approvers'])
+                
+            # Создаем первую запись согласования - непосредственный начальник
+            if document.direct_supervisor:
+                DocumentApproval.objects.get_or_create(
+                    document=document,
+                    approver=document.direct_supervisor,
+                    step_number=1,
+                    defaults={'status': 'pending'}
+                )
+                
+                # Если это новый документ, установим текущего согласовывающего
+                if document.approval_step == 0:
+                    document.current_approver = document.direct_supervisor
+                    document.approval_step = 1
+                    document.save()
+                
+            # Создаем записи согласования для каждого согласовывающего
+            step = 2
+            for approver in document.approvers.all():
+                DocumentApproval.objects.get_or_create(
+                    document=document,
+                    approver=approver,
+                    step_number=step,
+                    defaults={'status': 'pending'}
+                )
+                step += 1
+                
+            # Создаем запись для подписанта
+            if document.signer:
+                DocumentApproval.objects.get_or_create(
+                    document=document,
+                    approver=document.signer,
+                    step_number=step,
+                    defaults={'status': 'pending'}
+                )
+                
+            # Если это адресат
+            if document.addressee:
+                DocumentApproval.objects.get_or_create(
+                    document=document,
+                    approver=document.addressee,
+                    step_number=step + 1,
+                    defaults={'status': 'pending'}
+                )
+            
+        return document
 
 class AddCollaboratorForm(forms.Form):
     user = forms.ModelChoiceField(
@@ -117,4 +206,29 @@ class LoginForm(forms.Form):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Пароль'}),
         label='Пароль'
-    ) 
+    )
+
+class ProfileEditForm(forms.ModelForm):
+    """Form for editing user profile without username or password fields"""
+    
+    email = forms.EmailField(
+        max_length=254, 
+        required=True, 
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+    )
+    
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'specialty')
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+            
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Не меняем роль - это должно делаться только админом
+        if commit:
+            user.save()
+        return user 

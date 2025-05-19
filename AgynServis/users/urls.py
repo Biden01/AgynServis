@@ -23,6 +23,8 @@ urlpatterns = [
     path('document/<int:pk>/approve/', views.document_approve, name='document_approve'),
     path('document/<int:pk>/sign/', views.document_sign, name='document_sign'),
     path('document/<int:pk>/reject/', views.document_reject, name='document_reject'),
+    path('document/<int:pk>/approve-step/', views.document_approve_step, name='document_approve_step'),
+    path('document/<int:pk>/linked/', views.linked_document, name='linked_document'),
     
     # Комментарии
     path('document/<int:pk>/comment/reply/<int:comment_id>/', views.comment_reply, name='comment_reply'),

@@ -3,7 +3,7 @@
 {% block title %}Документ - AgynServis{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm">
+<div class="card shadow-sm mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h4>{{ document.title }}</h4>
         <div class="btn-group">
@@ -16,6 +16,11 @@
             </a>
             <a href="{% url 'document_edit_realtime' document.pk %}" class="btn btn-primary">
                 <i class="bi bi-people-fill"></i> Совместное редактирование
+            </a>
+            {% endif %}
+            {% if document.current_approver == request.user %}
+            <a href="{% url 'document_approve_step' document.pk %}" class="btn btn-success">
+                <i class="bi bi-check-lg"></i> Согласовать
             </a>
             {% endif %}
             {% if document.status == 'pending' and request.user.role == 'director' %}
@@ -35,19 +40,118 @@
     </div>
     <div class="card-body">
         <dl class="row">
+            <dt class="col-sm-3">Номер документа:</dt>
+            <dd class="col-sm-9">{{ document.document_number|default:"Не присвоен" }}</dd>
+            
             <dt class="col-sm-3">Автор:</dt>
             <dd class="col-sm-9">{{ document.author.get_full_name }}</dd>
+            
             <dt class="col-sm-3">Статус:</dt>
             <dd class="col-sm-9">
                 <span class="badge bg-{{ document.status_color }}">{{ document.get_status_display }}</span>
             </dd>
+            
             <dt class="col-sm-3">Дата создания:</dt>
             <dd class="col-sm-9">{{ document.created_at|date:"d.m.Y H:i" }}</dd>
+            
+            {% if document.current_approver %}
+            <dt class="col-sm-3">Текущее согласование:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-warning">
+                    Ожидает согласования: {{ document.current_approver.get_full_name|default:document.current_approver.username }}
+                    ({{ document.current_approver.get_role_display }})
+                </span>
+            </dd>
+            {% endif %}
+            
+            {% if document.addressee %}
+            <dt class="col-sm-3">Кому:</dt>
+            <dd class="col-sm-9">{{ document.addressee.get_full_name|default:document.addressee.username }}</dd>
+            {% endif %}
+            
+            {% if document.signer %}
+            <dt class="col-sm-3">Подписант:</dt>
+            <dd class="col-sm-9">{{ document.signer.get_full_name|default:document.signer.username }}</dd>
+            {% endif %}
+            
+            {% if document.direct_supervisor %}
+            <dt class="col-sm-3">Непосредственный начальник:</dt>
+            <dd class="col-sm-9">{{ document.direct_supervisor.get_full_name|default:document.direct_supervisor.username }}</dd>
+            {% endif %}
+            
+            {% if document.approvers.all %}
+            <dt class="col-sm-3">Согласовывающие:</dt>
+            <dd class="col-sm-9">
+                <ul class="list-unstyled">
+                    {% for approver in document.approvers.all %}
+                    <li>{{ approver.get_full_name|default:approver.username }}</li>
+                    {% endfor %}
+                </ul>
+            </dd>
+            {% endif %}
+            
             <dt class="col-sm-3">Содержание:</dt>
             <dd class="col-sm-9">{{ document.content|linebreaks }}</dd>
         </dl>
     </div>
 </div>
+
+<!-- Document Card Shortcut -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Быстрый доступ к документу</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                {% include "users/partials/document_card.html" with document=document %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if document.approvals.exists %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Маршрут согласования</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Шаг</th>
+                        <th>Согласующий</th>
+                        <th>Статус</th>
+                        <th>Дата</th>
+                        <th>Комментарий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for approval in document.approvals.all %}
+                    <tr class="{% if approval.approver == document.current_approver %}table-warning{% endif %}">
+                        <td>{{ approval.step_number }}</td>
+                        <td>
+                            {{ approval.approver.get_full_name|default:approval.approver.username }}
+                            <br>
+                            <small class="text-muted">{{ approval.approver.get_role_display }}</small>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill 
+                                {% if approval.status == 'pending' %}bg-warning{% elif approval.status == 'approved' %}bg-success{% elif approval.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %}">
+                                {{ approval.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ approval.updated_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ approval.comment|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Модальное окно редактирования -->
 {% if document.status == 'draft' and document.author == request.user %}
@@ -102,6 +206,16 @@
 }
 
 dt {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: rgba(0,0,0,0.03);
     font-weight: 600;
     color: var(--text-muted);
 }
